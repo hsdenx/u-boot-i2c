@@ -24,11 +24,8 @@
 
 static int pcf2127_rtc_set(struct udevice *dev, const struct rtc_time *tm)
 {
-	uchar buf[8];
+	uchar buf[7] = {0};
 	int i = 0, ret;
-
-	/* start register address */
-	buf[i++] = PCF2127_REG_SC;
 
 	/* hours, minutes and seconds */
 	buf[i++] = bin2bcd(tm->tm_sec);
@@ -44,7 +41,7 @@ static int pcf2127_rtc_set(struct udevice *dev, const struct rtc_time *tm)
 	buf[i++] = bin2bcd(tm->tm_year % 100);
 
 	/* write register's data */
-	ret = dm_i2c_write(dev, PCF2127_REG_CTRL1, buf, sizeof(buf));
+	ret = dm_i2c_write(dev, PCF2127_REG_SC, buf, i);
 
 	return ret;
 }
@@ -54,9 +51,12 @@ static int pcf2127_rtc_get(struct udevice *dev, struct rtc_time *tm)
 	int ret = 0;
 	uchar buf[10] = { PCF2127_REG_CTRL1 };
 
-	ret = dm_i2c_write(dev, PCF2127_REG_CTRL1, buf, 1);
+	/* Set the address of the start register to be read */
+	ret = dm_i2c_write(dev, PCF2127_REG_CTRL1, NULL, 0);
 	if (ret < 0)
 		return ret;
+
+	/* Read register's data */
 	ret = dm_i2c_read(dev, PCF2127_REG_CTRL1, buf, sizeof(buf));
 	if (ret < 0)
 		return ret;
@@ -90,6 +90,13 @@ static int pcf2127_rtc_reset(struct udevice *dev)
 	return 0;
 }
 
+static int pcf2127_probe(struct udevice *dev)
+{
+	i2c_set_chip_flags(dev, DM_I2C_CHIP_ADDR_STOP);
+
+	return 0;
+}
+
 static const struct rtc_ops pcf2127_rtc_ops = {
 	.get = pcf2127_rtc_get,
 	.set = pcf2127_rtc_set,
@@ -104,6 +111,7 @@ static const struct udevice_id pcf2127_rtc_ids[] = {
 U_BOOT_DRIVER(rtc_pcf2127) = {
 	.name	= "rtc-pcf2127",
 	.id	= UCLASS_RTC,
+	.probe	= pcf2127_probe,
 	.of_match = pcf2127_rtc_ids,
 	.ops	= &pcf2127_rtc_ops,
 };
