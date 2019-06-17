@@ -135,8 +135,10 @@ int dm_i2c_read(struct udevice *dev, uint offset, uint8_t *buffer, int len)
 	if (chip->flags & DM_I2C_CHIP_RD_ADDRESS)
 		return i2c_read_bytewise(dev, offset, buffer, len);
 	ptr = msg;
-	if (!i2c_setup_offset(chip, offset, offset_buf, ptr))
-		ptr++;
+	if (!(chip->flags & DM_I2C_CHIP_ADDR_STOP)) {
+		if (!i2c_setup_offset(chip, offset, offset_buf, ptr))
+			ptr++;
+	}
 
 	if (len) {
 		ptr->addr = chip->chip_addr;

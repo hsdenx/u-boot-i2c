@@ -28,6 +28,7 @@ enum dm_i2c_chip_flags {
 	DM_I2C_CHIP_10BIT	= 1 << 0, /* Use 10-bit addressing */
 	DM_I2C_CHIP_RD_ADDRESS	= 1 << 1, /* Send address for each read byte */
 	DM_I2C_CHIP_WR_ADDRESS	= 1 << 2, /* Send address for each write byte */
+	DM_I2C_CHIP_ADDR_STOP  = 1 << 3, /* Need generate stop bit */
 };
 
 struct udevice;
