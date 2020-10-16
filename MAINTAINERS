@@ -275,10 +275,12 @@ S:	Maintained
 F:	arch/arm/mach-mediatek/
 F:	arch/arm/include/asm/arch-mediatek/
 F:	board/mediatek/
+F:	doc/device-tree-bindings/i2c/i2c-mtk.txt
 F:	doc/device-tree-bindings/phy/phy-mtk-*
 F:	doc/device-tree-bindings/usb/mediatek,*
 F:	doc/README.mediatek
 F:	drivers/clk/mediatek/
+F:	drivers/i2c/mt_i2c.c
 F:	drivers/mmc/mtk-sd.c
 F:	drivers/phy/phy-mtk-*
 F:	drivers/pinctrl/mediatek/
