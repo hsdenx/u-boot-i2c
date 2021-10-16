@@ -22,7 +22,7 @@ DECLARE_GLOBAL_DATA_PTR;
 static int imx_pinctrl_set_state(struct udevice *dev, struct udevice *config)
 {
 	struct imx_pinctrl_priv *priv = dev_get_priv(dev);
-	struct imx_pinctrl_soc_info *info = priv->info;
+	struct imx_pinctrl_soc_info *info = &priv->info;
 	int node = dev_of_offset(config);
 	const struct fdt_property *prop;
 	u32 *pin_data;
@@ -199,23 +199,16 @@ const struct pinctrl_ops imx_pinctrl_ops  = {
 	.set_state = imx_pinctrl_set_state,
 };
 
-int imx_pinctrl_probe(struct udevice *dev,
-		      struct imx_pinctrl_soc_info *info)
+int imx_pinctrl_probe(struct udevice *dev)
 {
 	struct imx_pinctrl_priv *priv = dev_get_priv(dev);
 	int node = dev_of_offset(dev), ret;
 	struct fdtdec_phandle_args arg;
 	fdt_addr_t addr;
 	fdt_size_t size;
-
-	if (!info) {
-		dev_err(dev, "wrong pinctrl info\n");
-		return -EINVAL;
-	}
+	struct imx_pinctrl_soc_info *info = &priv->info;
 
 	priv->dev = dev;
-	priv->info = info;
-
 	if (info->flags & IMX8_USE_SCU)
 		return 0;
 
@@ -226,7 +219,6 @@ int imx_pinctrl_probe(struct udevice *dev,
 	info->base = map_sysmem(addr, size);
 	if (!info->base)
 		return -ENOMEM;
-	priv->info = info;
 
 	info->mux_mask = fdtdec_get_int(gd->fdt_blob, node, "fsl,mux_mask", 0);
 	/*
@@ -260,7 +252,7 @@ int imx_pinctrl_probe(struct udevice *dev,
 int imx_pinctrl_remove(struct udevice *dev)
 {
 	struct imx_pinctrl_priv *priv = dev_get_priv(dev);
-	struct imx_pinctrl_soc_info *info = priv->info;
+	struct imx_pinctrl_soc_info *info = &priv->info;
 
 	if (info->flags & IMX8_USE_SCU)
 		return 0;

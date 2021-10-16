@@ -9,7 +9,8 @@
 
 #include "pinctrl-imx.h"
 
-static struct imx_pinctrl_soc_info imx7_pinctrl_soc_info __section(".data");
+static struct imx_pinctrl_soc_info imx7_pinctrl_soc_info __section(".rodata");
+static struct imx_pinctrl_soc_info imx7_lpsr_pinctrl_soc_info __section(".rodata");
 
 static struct imx_pinctrl_soc_info imx7_lpsr_pinctrl_soc_info = {
 	.flags = ZERO_OFFSET_VALID,
@@ -19,8 +20,15 @@ static int imx7_pinctrl_probe(struct udevice *dev)
 {
 	struct imx_pinctrl_soc_info *info =
 		(struct imx_pinctrl_soc_info *)dev_get_driver_data(dev);
+	struct imx_pinctrl_priv *priv = dev_get_priv(dev);
 
-	return imx_pinctrl_probe(dev, info);
+	/*
+	 * imx_pinctrl_soc_info is stored in .rodata as on XIP
+	 * boot we cannot put it to .data. So malloc it and copy
+	 * to malloced place the buildtime setting.
+	 */
+	memcpy(&priv->info, info, sizeof(struct imx_pinctrl_soc_info));
+	return imx_pinctrl_probe(dev);
 }
 
 static const struct udevice_id imx7_pinctrl_match[] = {

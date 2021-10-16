@@ -10,7 +10,8 @@
 
 #include "pinctrl-imx.h"
 
-static struct imx_pinctrl_soc_info imx6_pinctrl_soc_info __section(".data");
+static struct imx_pinctrl_soc_info imx6_pinctrl_soc_info __section(".rodata");
+static struct imx_pinctrl_soc_info imx6_snvs_pinctrl_soc_info __section(".rodata");
 
 /* FIXME Before reloaction, BSS is overlapped with DT area */
 static struct imx_pinctrl_soc_info imx6ul_pinctrl_soc_info = {
@@ -25,8 +26,15 @@ static int imx6_pinctrl_probe(struct udevice *dev)
 {
 	struct imx_pinctrl_soc_info *info =
 		(struct imx_pinctrl_soc_info *)dev_get_driver_data(dev);
+	struct imx_pinctrl_priv *priv = dev_get_priv(dev);
 
-	return imx_pinctrl_probe(dev, info);
+	/*
+	 * imx_pinctrl_soc_info is stored in .rodata as on XIP
+	 * boot we cannot put it to .data. So malloc it and copy
+	 * to malloced place the buildtime setting.
+	 */
+	memcpy(&priv->info, info, sizeof(struct imx_pinctrl_soc_info));
+	return imx_pinctrl_probe(dev);
 }
 
 static const struct udevice_id imx6_pinctrl_match[] = {

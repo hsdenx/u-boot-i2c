@@ -22,8 +22,15 @@ static int imx8ulp_pinctrl_probe(struct udevice *dev)
 {
 	struct imx_pinctrl_soc_info *info =
 		(struct imx_pinctrl_soc_info *)dev_get_driver_data(dev);
+	struct imx_pinctrl_priv *priv = dev_get_priv(dev);
 
-	return imx_pinctrl_probe(dev, info);
+	/*
+	 * imx_pinctrl_soc_info is stored in .rodata as on XIP
+	 * boot we cannot put it to .data. So malloc it and copy
+	 * to malloced place the buildtime setting.
+	 */
+	memcpy(&priv->info, info, sizeof(struct imx_pinctrl_soc_info));
+	return imx_pinctrl_probe(dev);
 }
 
 static const struct udevice_id imx8ulp_pinctrl_match[] = {
